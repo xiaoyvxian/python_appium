@@ -8,8 +8,16 @@ from pathlib import Path
 import getDevicesInfo
 
 
+def log_dir(sn):
+    return Path(os.getcwd() + f"/accomplish/{sn}")
+
+
 def ready_to_test():
     system_type = sys.platform
+    a = os.popen('REG QUERY HKEY_CURRENT_USER\Console /v QuickEdit').read()
+    if '0x1' in a:
+        os.popen('reg add HKEY_CURRENT_USER\Console /v QuickEdit /t REG_DWORD /d 00000000 /f')
+        print('已尝试将CMD‘快速编辑模式’设为关闭状态')
     for i, sn in enumerate(getDevicesInfo.get_devices_sn()):
         source_path = Path(os.getcwd() + "/test_Camera")
         target_path = Path(os.getcwd() + "/accomplish/" + sn)
@@ -25,17 +33,20 @@ def ready_to_test():
                 shell(system_type='win', comlist=[[f'appium -p {post}']])
             elif 'linux' in system_type:
                 shell(system_type='linux', comlist=[[f'appium -p {post}']])
+            else:
+                raise Exception("获取PC操作系统失败")
         else:
             phone = getDevicesInfo.TestPhone(device=sn, i=i)
             shutil.copytree(source_path, target_path)
             phone.white_info()
             post = phone.info['server_port']
             if 'win' in system_type:
-                shell(system_type='win', comlist=[[f'appium -p {post}']])
-            elif 'linux' in system_type:
-                shell(system_type='linux', comlist=[[f'appium -p {post}']])
-            # os.popen(f'appium -p {post}')
+                shell(system_type='win',
+                      comlist=[[f'appium -p {post} --log {log_dir(sn=phone.device)}\Appium_log.log']])
 
+            elif 'linux' in system_type:
+                shell(system_type='linux',
+                      comlist=[[f'appium -p {post} --log {log_dir(sn=phone.device)}/Appium_log.log']])
 
 
 def shell(system_type, comlist):
@@ -76,16 +87,20 @@ if __name__ == '__main__':
     if 'win' in system_type:
         for sn in getDevicesInfo.get_devices_sn():
             comlist = [
-                [f"cd accomplish\{sn}", "python -m pytest -vs --instafail --tb=long --capture=sys --html=log.html"],
-                [f"set ANDROID_SERIAL={sn}", f"cd accomplish\{sn}\getLogs\Dropbox", "python getDropbox_v0.6.py"],
-                [f"set ANDROID_SERIAL={sn}", "adb shell ps -A |findstr system_server"]
+                [f"cd accomplish\{sn}",
+                 "python -m pytest test_Camera.py -vs --instafail --tb=long --capture=sys --html=pytest_log.html"],
+                # [f"set ANDROID_SERIAL={sn}", f"cd accomplish\{sn}\getLogs\Dropbox", "python getDropbox_v0.6.py"],
+                # [f"set ANDROID_SERIAL={sn}", "adb shell ps -A |findstr system_server"]
             ]
             shell(system_type='win', comlist=comlist)
     elif 'linux' in system_type:
         for sn in getDevicesInfo.get_devices_sn():
             comlist = [
-                [f"cd accomplish/{sn}", "python -m pytest -vs --instafail --tb=long --capture=sys --html=log.html"],
+                [f"cd accomplish/{sn}",
+                 "python -m pytest -vs --instafail --tb=long --capture=sys --html=pytest_log.html"],
                 [f"export ANDROID_SERIAL={sn}", f"cd accomplish/{sn}/getLogs/Dropbox", "python3 getDropbox_v0.6.py"],
                 [f"export ANDROID_SERIAL={sn}", "adb shell ps -A |grep system_server"]
             ]
             shell(system_type='linux', comlist=comlist)
+    else:
+        raise Exception("获取PC操作系统失败")

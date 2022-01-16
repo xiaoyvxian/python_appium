@@ -8,10 +8,10 @@ class AndroidDriver:
     driver = webdriver
 
     @classmethod
-    def startup(cls, device_dict):
+    def startup(cls, device_dict, apppackage=None, appactivity=None):
         # 'com.ontim.camera2', 'com.ontim.camera2.CameraLauncher'
-        desired_caps['appPackage'] = None
-        desired_caps['appActivity'] = None
+        desired_caps['appPackage'] = apppackage
+        desired_caps['appActivity'] = appactivity
         desired_caps['udid'] = device_dict['udid']
         desired_caps['systemPort'] = device_dict['system_port']
         desired_caps['platform_version'] = device_dict['platform_version']

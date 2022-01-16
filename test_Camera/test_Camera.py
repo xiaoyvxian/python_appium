@@ -1,8 +1,11 @@
 import configparser
 import time
+
+import pytest
 from selenium.webdriver.common.by import By
-from androidDriver import AndroidDriver
-from tools import BasePage
+
+from AndroidDriver import AndroidDriver
+from base_BaseTool import BasePage
 
 device_dict = dict
 
@@ -33,41 +36,30 @@ class TestCam(AndroidDriver):
         print(self.driver)
         self.driver.implicitly_wait(10)
         self.driver.start_activity('com.ontim.camera2', 'com.ontim.camera2.CameraLauncher')
-        # self.phones[1].start_activity('com.ontim.camera2', 'com.ontim.camera2.CameraLauncher')
 
     def setup_method(self):
         print("222")
-        # AndroidDriver.startup('com.ontim.camera2', 'com.ontim.camera2.CameraLauncher')
         time.sleep(2)
         self.driver.start_activity('com.ontim.camera2', 'com.ontim.camera2.CameraLauncher')
-        # self.phones[1].start_activity('com.ontim.camera2', 'com.ontim.camera2.CameraLauncher')
-        # AndroidDriver.startup('com.ontim.camera2', 'com.ontim.camera2.CameraLauncher')
 
     def teardown_method(self):
         print("555")
         for _ in range(3):
             self.driver.keyevent(4)
-            # self.phones[1].keyevent(4)
         self.driver.keyevent(3)
-        # self.phones[1].keyevent(3)
 
+    @pytest.mark.order(2)
+    @pytest.mark.repeat(5)
     def test_01(self):
         print("333")
-        # self.phones[0].find_element(By.ID, "com.ontim.camera2:id/mode_shutter_button").click()
-        # self.phones[1].find_element(By.ID, "com.ontim.camera2:id/mode_shutter_button").click()
-        BasePage().click(shutter_button)
+        BasePage(driver=self.driver).click(shutter_button)
 
         time.sleep(2)
 
+    @pytest.mark.order(1)
+    @pytest.mark.repeat(5)
     def test_02(self):
         print("444")
         time.sleep(2)
         self.driver.find_element(By.ID, "com.ontim.camera2:id/mode_shutter_button").click()
-        # self.phones[1].find_element(By.ID, "com.ontim.camera2:id/mode_shutter_button").click()
-        self.driver.find_element_by_accessibility_id()
         time.sleep(2)
-
-
-if __name__ == '__main__':
-    a = TestCam()
-    a.setup_class()

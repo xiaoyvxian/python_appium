@@ -1,0 +1,8 @@
+Appium_Python_Client==2.1.2
+pyserial==3.5
+pytest==6.2.5
+selenium==4.1.0
+pytest-repeat
+pytest-order
+pytest-instafail
+pytest-html

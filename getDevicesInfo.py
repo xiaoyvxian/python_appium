@@ -3,6 +3,7 @@ import os
 import socket
 from pathlib import Path
 
+import serial.tools.list_ports
 from appium import webdriver
 
 
@@ -18,7 +19,7 @@ def get_devices_sn() -> list:
         "\t")
     devices.pop(-1)
     if "unauthorized" in devices or len(devices) == 0:
-        raise Exception('设备异常')
+        raise Exception('获取SN号失败：设备未授权')
     return devices
 
 
@@ -40,6 +41,7 @@ class TestPhone:
         self.version = self.get_devices_version()
         # self.android_version = self.get_devices_android_version(self.device)
         self.info = self.get_device_infos(i)
+        self.port = self.get_devices_port()
 
     def get_devices_version(self):
         version = cmd(f"adb -s {self.device} shell getprop ro.versions.internal_sw_ver").replace("\n", "") + "_" + cmd(
@@ -60,18 +62,28 @@ class TestPhone:
     def get_device_infos(self, i) -> dict:
         device_dict = {"platform_version": TestPhone.get_devices_android_version(self.device),
                        "server_port": 4723 + i * 2,
-                       "system_port": 8200 + i * 1, "udid": self.device}
+                       "system_port": 8200 + i * 1,
+                       "udid": self.device,
+                       "port": self.get_devices_port()}
         if check_port(host='127.0.0.1', port=device_dict["server_port"]):
             return device_dict
         else:
             raise Exception(device_dict["server_port"].__str__() + "端口被占用，启动失败")
+
+    def get_devices_port(self):
+        port_list = list(serial.tools.list_ports.comports())
+        for port in port_list:
+            if 'LTE' in port.description:
+                # print(port.name)
+                if port.serial_number == self.device:
+                    return port.name
+                # todo:补全在没有驱动的情况下的报错信息
 
     def white_info(self):
         conf = configparser.ConfigParser()
         conf.read('info.ini')
         conf.add_section('PhoneInfo')
         conf.set('PhoneInfo', 'version', self.version)
-        # conf.set('device_dict', 'android_version', self.android_version)
         conf.add_section('device_dict')
         for _ in self.info:
             conf.set('device_dict', _, str(self.info[_]))
