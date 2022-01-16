@@ -1,6 +1,7 @@
 import configparser
 import os
 import socket
+import sys
 from pathlib import Path
 
 import serial.tools.list_ports
@@ -71,13 +72,17 @@ class TestPhone:
             raise Exception(device_dict["server_port"].__str__() + "端口被占用，启动失败")
 
     def get_devices_port(self):
-        port_list = list(serial.tools.list_ports.comports())
-        for port in port_list:
-            if 'LTE' in port.description:
-                # print(port.name)
-                if port.serial_number == self.device:
-                    return port.name
-                # todo:补全在没有驱动的情况下的报错信息
+        system_type = sys.platform
+        if 'win' in system_type:
+            port_list = list(serial.tools.list_ports.comports())
+            for port in port_list:
+                if 'LTE' in port.description:
+                    # print(port.name)
+                    if port.serial_number == self.device:
+                        return port.name
+                    # todo:补全在没有驱动的情况下的报错信息
+        else:
+            return 'N/A'
 
     def white_info(self):
         conf = configparser.ConfigParser()

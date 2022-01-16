@@ -18,6 +18,7 @@ def ready_to_test():
     if '0x1' in a:
         os.popen('reg add HKEY_CURRENT_USER\Console /v QuickEdit /t REG_DWORD /d 00000000 /f')
         print('已尝试将CMD‘快速编辑模式’设为关闭状态')
+
     for i, sn in enumerate(getDevicesInfo.get_devices_sn()):
         source_path = Path(os.getcwd() + "/test_Camera")
         target_path = Path(os.getcwd() + "/accomplish/" + sn)
@@ -30,11 +31,15 @@ def ready_to_test():
             else:
                 raise Exception(post.__str__() + "端口被占用，启动失败")
             if 'win' in system_type:
-                shell(system_type='win', comlist=[[f'appium -p {post}']])
+                shell(system_type='win',
+                      comlist=[[f'appium -p {post} --log {log_dir(sn=sn)}\Appium_log.log']])
+
             elif 'linux' in system_type:
-                shell(system_type='linux', comlist=[[f'appium -p {post}']])
+                shell(system_type='linux',
+                      comlist=[[f'appium -p {post} --log {log_dir(sn=sn)}/Appium_log.log']])
             else:
                 raise Exception("获取PC操作系统失败")
+
         else:
             phone = getDevicesInfo.TestPhone(device=sn, i=i)
             shutil.copytree(source_path, target_path)
@@ -47,6 +52,8 @@ def ready_to_test():
             elif 'linux' in system_type:
                 shell(system_type='linux',
                       comlist=[[f'appium -p {post} --log {log_dir(sn=phone.device)}/Appium_log.log']])
+            else:
+                raise Exception("获取PC操作系统失败")
 
 
 def shell(system_type, comlist):
